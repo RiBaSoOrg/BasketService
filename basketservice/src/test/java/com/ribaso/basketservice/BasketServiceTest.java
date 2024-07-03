@@ -142,19 +142,13 @@ class BasketServiceTest {
     void addItem_ShouldAddNewItem_WhenItemDoesNotExist() {
         when(basketRepository.findById("1")).thenReturn(Optional.of(basket));
         when(itemRepository.save(any(Item.class))).thenReturn(item);
-    
-        Message message = MessageBuilder.withBody("2".getBytes())
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-        
-        when(rabbitTemplate.convertSendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), eq(message)))
+        when(rabbitTemplate.convertSendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), eq("2")))
                 .thenReturn(book);
-    
+
         boolean result = basketService.addItem("1", "2", 3);
         assertTrue(result);
         verify(itemRepository, times(1)).save(any(Item.class));
     }
-    
 
     @Test
     void addItem_ShouldIncreaseItemAmount_WhenItemExists() {
