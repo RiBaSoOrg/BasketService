@@ -34,9 +34,11 @@ public class BasketServiceImpl implements BasketService {
 
     private Book getBookDetails(String bookId) {
         Message message = MessageBuilder.withBody(bookId.getBytes())
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
+        .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+        .build();
+        Book book = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
+        System.out.println("Received book: " + book);
+        return book;
     }
 
     @Override

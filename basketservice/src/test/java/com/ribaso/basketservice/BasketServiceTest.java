@@ -16,6 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -23,6 +26,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class BasketServiceTest {
@@ -138,12 +142,19 @@ class BasketServiceTest {
     void addItem_ShouldAddNewItem_WhenItemDoesNotExist() {
         when(basketRepository.findById("1")).thenReturn(Optional.of(basket));
         when(itemRepository.save(any(Item.class))).thenReturn(item);
-        when(rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", "2")).thenReturn(book);
-
+    
+        Message message = MessageBuilder.withBody("2".getBytes())
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+                .build();
+        
+        when(rabbitTemplate.convertSendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), eq(message)))
+                .thenReturn(book);
+    
         boolean result = basketService.addItem("1", "2", 3);
         assertTrue(result);
         verify(itemRepository, times(1)).save(any(Item.class));
     }
+    
 
     @Test
     void addItem_ShouldIncreaseItemAmount_WhenItemExists() {
