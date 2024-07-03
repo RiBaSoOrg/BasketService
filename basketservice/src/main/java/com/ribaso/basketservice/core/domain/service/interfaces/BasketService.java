@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface BasketService {
+
+
+    Basket createBasket(String userId);
     /**
      * Ruft einen Warenkorb anhand seiner ID ab.
      * 

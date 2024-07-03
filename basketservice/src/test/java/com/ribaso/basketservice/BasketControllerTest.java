@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -127,4 +128,21 @@ class BasketControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
     }
+
+ @Test
+void createBasket_ShouldReturnBasket_WhenBasketCreated() throws Exception {
+    when(basketService.createBasket(anyString())).thenReturn(basket);
+
+    mockMvc.perform(post("/baskets")
+            .param("userId", "1"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(basket.getId()));
+}
+
+@Test
+void createBasket_ShouldReturnBadRequest_WhenUserIdIsMissing() throws Exception {
+    mockMvc.perform(post("/baskets"))
+            .andExpect(status().isBadRequest());
+}
+
 }

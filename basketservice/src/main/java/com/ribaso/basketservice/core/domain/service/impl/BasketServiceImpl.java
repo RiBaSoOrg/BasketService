@@ -106,6 +106,11 @@ public class BasketServiceImpl implements BasketService {
 
     @Override
     @Transactional
+    public Basket createBasket(String userId) {
+        Basket basket = new Basket();
+        basket.setUserId(userId);
+        return basketRepository.save(basket);
+    }
     public boolean removeItem(String basketID, String itemID, int amount) {
         if (amount <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");

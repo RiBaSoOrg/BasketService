@@ -186,4 +186,21 @@ class BasketServiceTest {
     void removeItem_ShouldThrowException_WhenAmountIsInvalid() {
         assertThrows(InvalidAmountException.class, () -> basketService.removeItem("1", "1", 0));
     }
+
+    @Test
+    void createBasket_ShouldCreateAndReturnBasket() {
+        Basket newBasket = new Basket();
+        newBasket.setId("2");
+        newBasket.setUserId("user2");
+
+        when(basketRepository.save(any(Basket.class))).thenReturn(newBasket);
+
+        Basket result = basketService.createBasket("user2");
+
+        assertNotNull(result);
+        assertEquals("2", result.getId());
+        assertEquals("user2", result.getUserId());
+
+        verify(basketRepository, times(1)).save(any(Basket.class));
+    }
 }

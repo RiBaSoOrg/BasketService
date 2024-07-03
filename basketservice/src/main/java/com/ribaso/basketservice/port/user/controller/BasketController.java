@@ -19,6 +19,12 @@ public class BasketController {
     @Autowired
     private BasketService basketService;
 
+    @PostMapping
+    public ResponseEntity<Basket> createBasket(@RequestParam String userId) {
+        Basket basket = basketService.createBasket(userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(basket);
+    }
+    
     @GetMapping("/{basketID}")
     public ResponseEntity<Basket> getBasket(@PathVariable String basketID) {
         try {
