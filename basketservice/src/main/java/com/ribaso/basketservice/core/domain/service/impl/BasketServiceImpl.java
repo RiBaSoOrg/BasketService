@@ -33,11 +33,10 @@ public class BasketServiceImpl implements BasketService {
     private RabbitTemplate rabbitTemplate;
 
     private Book getBookDetails(String bookId) {
-        Message message = MessageBuilder.withBody(bookId.getBytes())
-        .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-        .build();
-        Book book = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
-        System.out.println("Received book: " + book);
+        Book book = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+        if (book == null) {
+            throw new UnknownItemIDException("Book not found");
+        }
         return book;
     }
 
@@ -50,8 +49,8 @@ public class BasketServiceImpl implements BasketService {
 
         Basket basket = getBasket(basketID);
         Optional<Item> existingItem = basket.getItems().stream()
-            .filter(item -> item.getId().equals(itemID))
-            .findFirst();
+                .filter(item -> item.getId().equals(itemID))
+                .findFirst();
 
         if (existingItem.isPresent()) {
             Item item = existingItem.get();
@@ -93,8 +92,8 @@ public class BasketServiceImpl implements BasketService {
     public BigDecimal getTotalCosts(String basketID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-            .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
@@ -107,9 +106,9 @@ public class BasketServiceImpl implements BasketService {
     public Item getItem(String basketID, String itemID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-            .filter(item -> item.getId().equals(itemID))
-            .findFirst()
-            .orElseThrow(() -> new UnknownItemIDException("Item not found"));
+                .filter(item -> item.getId().equals(itemID))
+                .findFirst()
+                .orElseThrow(() -> new UnknownItemIDException("Item not found"));
     }
 
     @Override
@@ -120,6 +119,7 @@ public class BasketServiceImpl implements BasketService {
         basket.setUserId(userId);
         return basketRepository.save(basket);
     }
+
     public boolean removeItem(String basketID, String itemID, int amount) {
         if (amount <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");
