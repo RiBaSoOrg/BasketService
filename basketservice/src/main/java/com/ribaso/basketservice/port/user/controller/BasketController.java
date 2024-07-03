@@ -3,6 +3,7 @@ package com.ribaso.basketservice.port.user.controller;
 import com.ribaso.basketservice.core.domain.model.Basket;
 import com.ribaso.basketservice.core.domain.model.Item;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
+import com.ribaso.basketservice.port.exception.BasketNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,11 @@ public class BasketController {
 
     @GetMapping("/{basketID}")
     public ResponseEntity<Basket> getBasket(@PathVariable String basketID) {
-        return ResponseEntity.ok(basketService.getBasket(basketID));
+        try {
+            return ResponseEntity.ok(basketService.getBasket(basketID));
+        } catch (BasketNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @DeleteMapping("/{basketID}")

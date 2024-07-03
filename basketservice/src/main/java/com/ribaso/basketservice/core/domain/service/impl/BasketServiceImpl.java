@@ -1,6 +1,7 @@
 package com.ribaso.basketservice.core.domain.service.impl;
 
 import com.ribaso.basketservice.core.domain.model.Basket;
+import com.ribaso.basketservice.core.domain.model.Book;
 import com.ribaso.basketservice.core.domain.model.Item;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketRepository;
 import com.ribaso.basketservice.core.domain.service.interfaces.ItemRepository;
@@ -10,6 +11,7 @@ import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -24,6 +26,47 @@ public class BasketServiceImpl implements BasketService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    private Book getBookDetails(String bookId) {
+        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+    }
+
+    @Override
+    @Transactional
+    public boolean addItem(String basketID, String itemID, int amount) {
+        if (amount <= 0) {
+            throw new InvalidAmountException("Amount must be greater than zero");
+        }
+
+        Basket basket = getBasket(basketID);
+        Optional<Item> existingItem = basket.getItems().stream()
+            .filter(item -> item.getId().equals(itemID))
+            .findFirst();
+
+        if (existingItem.isPresent()) {
+            Item item = existingItem.get();
+            item.setAmount(item.getAmount() + amount);
+            itemRepository.save(item);
+        } else {
+            Book book = getBookDetails(itemID);
+            if (book == null) {
+                throw new UnknownItemIDException("Book not found");
+            }
+
+            Item newItem = new Item();
+            newItem.setId(itemID);
+            newItem.setAmount(amount);
+            newItem.setName(book.getTitle());
+            newItem.setPrice(book.getPrice());
+            newItem.setBasket(basket);
+
+            itemRepository.save(newItem);
+        }
+        return true;
+    }
+
     @Override
     public Basket getBasket(String basketID) {
         return basketRepository.findById(basketID).orElseThrow(() -> new UnknownBasketIDException("Basket not found"));
@@ -31,9 +74,11 @@ public class BasketServiceImpl implements BasketService {
 
     @Override
     public boolean removeBasket(String basketID) {
-        Basket basket = getBasket(basketID);
-        basketRepository.delete(basket);
-        return true;
+        if (basketRepository.existsById(basketID)) {
+            basketRepository.deleteById(basketID);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -57,32 +102,6 @@ public class BasketServiceImpl implements BasketService {
             .filter(item -> item.getId().equals(itemID))
             .findFirst()
             .orElseThrow(() -> new UnknownItemIDException("Item not found"));
-    }
-
-    @Override
-    @Transactional
-    public boolean addItem(String basketID, String itemID, int amount) {
-        if (amount <= 0) {
-            throw new InvalidAmountException("Amount must be greater than zero");
-        }
-
-        Basket basket = getBasket(basketID);
-        Optional<Item> existingItem = basket.getItems().stream()
-            .filter(item -> item.getId().equals(itemID))
-            .findFirst();
-
-        if (existingItem.isPresent()) {
-            Item item = existingItem.get();
-            item.setAmount(item.getAmount() + amount);
-            itemRepository.save(item);
-        } else {
-            Item newItem = new Item();
-            newItem.setId(itemID);
-            newItem.setAmount(amount);
-            newItem.setBasket(basket);
-            itemRepository.save(newItem);
-        }
-        return true;
     }
 
     @Override

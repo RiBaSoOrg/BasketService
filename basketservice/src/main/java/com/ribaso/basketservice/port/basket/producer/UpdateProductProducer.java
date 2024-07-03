@@ -1,4 +1,4 @@
-package com.ribaso.basketservice.port.shoppingcart.producer;
+package com.ribaso.basketservice.port.basket.producer;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
