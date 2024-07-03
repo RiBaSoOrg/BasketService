@@ -108,6 +108,7 @@ public class BasketServiceImpl implements BasketService {
     @Transactional
     public Basket createBasket(String userId) {
         Basket basket = new Basket();
+        basket.setId(userId);
         basket.setUserId(userId);
         return basketRepository.save(basket);
     }
