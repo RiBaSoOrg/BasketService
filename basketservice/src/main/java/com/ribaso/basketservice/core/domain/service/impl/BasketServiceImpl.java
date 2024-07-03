@@ -12,6 +12,9 @@ import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -30,7 +33,10 @@ public class BasketServiceImpl implements BasketService {
     private RabbitTemplate rabbitTemplate;
 
     private Book getBookDetails(String bookId) {
-        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+        Message message = MessageBuilder.withBody(bookId.getBytes())
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+                .build();
+        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
     }
 
     @Override
