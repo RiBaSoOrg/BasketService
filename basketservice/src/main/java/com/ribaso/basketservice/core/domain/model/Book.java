@@ -5,28 +5,27 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Book {
+    @Id
     private String id;
     private String title;
+    private String subtitle;
+    private String isbn;
+    private String abstractText;  
+    private String author;
+    private String publisher;
     private BigDecimal price;
-
-
- @JsonCreator
-    public Book(@JsonProperty("id") String id,
-    @JsonProperty("title") String title,
-    @JsonProperty("price") BigDecimal price){
-        this.id = id; 
-        this.title = title;
-        this.price = price;
-    }
-
-
-public Book() {
-    //TODO Auto-generated constructor stub
-}
+    private int numPages;
 }
 
 
