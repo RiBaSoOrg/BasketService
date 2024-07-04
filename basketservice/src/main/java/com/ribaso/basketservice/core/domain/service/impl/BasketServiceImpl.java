@@ -42,19 +42,19 @@ public class BasketServiceImpl implements BasketService {
 
     private Book getBookDetails(String bookId) throws IOException {
         Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
-            .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-            .build();
-    Message responseMessage = rabbitTemplate.sendAndReceive("bookExchange", "bookRoutingKey", message);
-    if (responseMessage != null) {
-        String jsonResponse = new String(responseMessage.getBody(), StandardCharsets.UTF_8);
-        System.out.println("JSON response: " + jsonResponse);  // Zum Debuggen
-        try {
-            return objectMapper.readValue(responseMessage.getBody(), Book.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse book details from response", e);
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+                .build();
+        Message responseMessage = rabbitTemplate.sendAndReceive("bookExchange", "bookRoutingKey", message);
+        if (responseMessage != null) {
+            String jsonResponse = new String(responseMessage.getBody(), StandardCharsets.UTF_8);
+            System.out.println("JSON response: " + jsonResponse); // Zum Debuggen
+            try {
+                return objectMapper.readValue(responseMessage.getBody(), Book.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to parse book details from response: " + jsonResponse, e);
+            }
         }
-    }
-    return null;
+        return null;
     }
 
     @Override
