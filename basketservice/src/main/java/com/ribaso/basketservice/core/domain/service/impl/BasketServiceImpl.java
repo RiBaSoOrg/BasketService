@@ -46,6 +46,8 @@ public class BasketServiceImpl implements BasketService {
             .build();
     Message responseMessage = rabbitTemplate.sendAndReceive("bookExchange", "bookRoutingKey", message);
     if (responseMessage != null) {
+        String jsonResponse = new String(responseMessage.getBody(), StandardCharsets.UTF_8);
+        System.out.println("JSON response: " + jsonResponse);  // Zum Debuggen
         try {
             return objectMapper.readValue(responseMessage.getBody(), Book.class);
         } catch (JsonProcessingException e) {
