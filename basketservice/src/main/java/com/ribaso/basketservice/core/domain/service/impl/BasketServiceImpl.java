@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
@@ -38,15 +39,10 @@ public class BasketServiceImpl implements BasketService {
     private ObjectMapper objectMapper;
 
     private Book getBookDetails(String bookId) {
-        String response = (String) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
-        if (response != null) {
-            try {
-                return objectMapper.readValue(response, Book.class);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to parse book details from response", e);
-            }
-        }
-        return null;
+         Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
+                .setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN)
+                .build();
+        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
     }
 
     @Override
