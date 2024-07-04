@@ -146,7 +146,7 @@ class BasketServiceTest {
 
         // Erstelle eine JSON-Nachricht
         Message message = MessageBuilder.withBody("2".getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN)
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                 .build();
 
         when(rabbitTemplate.convertSendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), eq(message)))
