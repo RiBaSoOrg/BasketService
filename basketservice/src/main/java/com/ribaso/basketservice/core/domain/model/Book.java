@@ -24,7 +24,7 @@ public class Book {
     private String abstractText;  
     private String author;
     private String publisher;
-    private BigDecimal price;
+    private String price;
     private int numPages;
 }
 

@@ -81,7 +81,7 @@ public class BasketServiceImpl implements BasketService {
             newItem.setId(itemID);
             newItem.setAmount(amount);
             newItem.setName(book.getTitle());
-            newItem.setPrice(book.getPrice());
+            newItem.setPrice(new BigDecimal(book.getPrice()));
             newItem.setBasket(basket);
 
             itemRepository.save(newItem);

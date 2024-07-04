@@ -73,7 +73,7 @@ class BasketServiceTest {
         book = new Book();
         book.setId("1");
         book.setTitle("Test Book");
-        book.setPrice(new BigDecimal("10.00"));
+        book.setPrice(("10.00"));
 
         basket.setItems(Arrays.asList(item));
         
