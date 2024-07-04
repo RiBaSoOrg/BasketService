@@ -1,5 +1,7 @@
 package com.ribaso.basketservice.core.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ribaso.basketservice.core.domain.model.Basket;
 import com.ribaso.basketservice.core.domain.model.Book;
 import com.ribaso.basketservice.core.domain.model.Item;
@@ -9,12 +11,12 @@ import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -32,12 +34,19 @@ public class BasketServiceImpl implements BasketService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private Book getBookDetails(String bookId) {
-        Book book = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
-        if (book == null) {
-            throw new UnknownItemIDException("Book not found");
+        String response = (String) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+        if (response != null) {
+            try {
+                return objectMapper.readValue(response, Book.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to parse book details from response", e);
+            }
         }
-        return book;
+        return null;
     }
 
     @Override
@@ -49,8 +58,8 @@ public class BasketServiceImpl implements BasketService {
 
         Basket basket = getBasket(basketID);
         Optional<Item> existingItem = basket.getItems().stream()
-                .filter(item -> item.getId().equals(itemID))
-                .findFirst();
+            .filter(item -> item.getId().equals(itemID))
+            .findFirst();
 
         if (existingItem.isPresent()) {
             Item item = existingItem.get();
@@ -92,8 +101,8 @@ public class BasketServiceImpl implements BasketService {
     public BigDecimal getTotalCosts(String basketID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
@@ -106,20 +115,13 @@ public class BasketServiceImpl implements BasketService {
     public Item getItem(String basketID, String itemID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-                .filter(item -> item.getId().equals(itemID))
-                .findFirst()
-                .orElseThrow(() -> new UnknownItemIDException("Item not found"));
+            .filter(item -> item.getId().equals(itemID))
+            .findFirst()
+            .orElseThrow(() -> new UnknownItemIDException("Item not found"));
     }
 
     @Override
     @Transactional
-    public Basket createBasket(String userId) {
-        Basket basket = new Basket();
-        basket.setId(userId);
-        basket.setUserId(userId);
-        return basketRepository.save(basket);
-    }
-
     public boolean removeItem(String basketID, String itemID, int amount) {
         if (amount <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");
@@ -140,5 +142,13 @@ public class BasketServiceImpl implements BasketService {
             itemRepository.save(item);
         }
         return true;
+    }
+
+    @Override
+    @Transactional
+    public Basket createBasket(String userId) {
+        Basket basket = new Basket();
+        basket.setUserId(userId);
+        return basketRepository.save(basket);
     }
 }
