@@ -22,6 +22,11 @@ public class Book {
         this.title = title;
         this.price = price;
     }
+
+
+public Book() {
+    //TODO Auto-generated constructor stub
+}
 }
 
 
