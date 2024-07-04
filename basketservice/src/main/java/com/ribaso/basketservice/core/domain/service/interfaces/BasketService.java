@@ -6,6 +6,7 @@ import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -65,10 +66,11 @@ public interface BasketService {
      * @param itemID Die eindeutige ID des Artikels.
      * @param amount Die Menge des Artikels, die hinzugefügt werden soll.
      * @return true, wenn der Artikel erfolgreich hinzugefügt wurde, false andernfalls.
+     * @throws IOException 
      * @throws InvalidAmountException Wenn die Menge ungültig ist.
      * @throws UnknownBasketIDException Wenn der Warenkorb nicht gefunden wird.
      */
-    boolean addItem(String basketID, String itemID, int amount);
+    boolean addItem(String basketID, String itemID, int amount) throws IOException;
 
     /**
      * Entfernt eine bestimmte Menge eines Artikels aus einem Warenkorb.

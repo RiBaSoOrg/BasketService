@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -38,24 +40,32 @@ public class BasketServiceImpl implements BasketService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private Book getBookDetails(String bookId) {
-         Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-        return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
+    private Book getBookDetails(String bookId) throws IOException {
+        Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
+            .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+            .build();
+    Message responseMessage = rabbitTemplate.sendAndReceive("bookExchange", "bookRoutingKey", message);
+    if (responseMessage != null) {
+        try {
+            return objectMapper.readValue(responseMessage.getBody(), Book.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse book details from response", e);
+        }
+    }
+    return null;
     }
 
     @Override
     @Transactional
-    public boolean addItem(String basketID, String itemID, int amount) {
+    public boolean addItem(String basketID, String itemID, int amount) throws IOException {
         if (amount <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");
         }
 
         Basket basket = getBasket(basketID);
         Optional<Item> existingItem = basket.getItems().stream()
-            .filter(item -> item.getId().equals(itemID))
-            .findFirst();
+                .filter(item -> item.getId().equals(itemID))
+                .findFirst();
 
         if (existingItem.isPresent()) {
             Item item = existingItem.get();
@@ -97,8 +107,8 @@ public class BasketServiceImpl implements BasketService {
     public BigDecimal getTotalCosts(String basketID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-            .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getAmount())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
@@ -111,9 +121,9 @@ public class BasketServiceImpl implements BasketService {
     public Item getItem(String basketID, String itemID) {
         Basket basket = getBasket(basketID);
         return basket.getItems().stream()
-            .filter(item -> item.getId().equals(itemID))
-            .findFirst()
-            .orElseThrow(() -> new UnknownItemIDException("Item not found"));
+                .filter(item -> item.getId().equals(itemID))
+                .findFirst()
+                .orElseThrow(() -> new UnknownItemIDException("Item not found"));
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -55,7 +56,7 @@ public class BasketController {
     }
 
     @PostMapping("/{basketID}/items")
-    public ResponseEntity<Boolean> addItem(@PathVariable String basketID, @RequestParam String itemID, @RequestParam int amount) {
+    public ResponseEntity<Boolean> addItem(@PathVariable String basketID, @RequestParam String itemID, @RequestParam int amount) throws IOException {
         return ResponseEntity.ok(basketService.addItem(basketID, itemID, amount));
     }
 
