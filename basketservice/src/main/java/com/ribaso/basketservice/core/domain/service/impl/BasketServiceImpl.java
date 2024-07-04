@@ -40,7 +40,7 @@ public class BasketServiceImpl implements BasketService {
 
     private Book getBookDetails(String bookId) {
          Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN)
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                 .build();
         return (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", message);
     }
