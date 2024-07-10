@@ -7,6 +7,7 @@ import com.ribaso.basketservice.core.domain.model.Book;
 import com.ribaso.basketservice.core.domain.model.Item;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketRepository;
 import com.ribaso.basketservice.core.domain.service.interfaces.ItemRepository;
+import com.ribaso.basketservice.port.basket.producer.SendBookId;
 import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
@@ -37,13 +38,14 @@ public class BasketServiceImpl implements BasketService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    SendBookId sendBookId = new SendBookId();
 
     private Book getBookDetails(String bookId) throws IOException {
-        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", bookId);
+        sendBookId.sendBookId(bookId);
         Object response = rabbitTemplate.receiveAndConvert("bookQueue", 10000); // 10 Sekunden Timeout
         if (response != null) {
             System.out.println("JSON response: " + response); // Zum Debuggen
-            return (Book) response;
+            return  (Book) response;
         }
         return null;
     }
