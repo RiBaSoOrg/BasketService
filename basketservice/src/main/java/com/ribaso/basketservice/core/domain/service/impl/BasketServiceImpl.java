@@ -40,7 +40,7 @@ public class BasketServiceImpl implements BasketService {
 
     private Book getBookDetails(String bookId) throws IOException {
         rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", bookId);
-        Object response = rabbitTemplate.receiveAndConvert("bookRoutingKey", 10000); // 10 Sekunden Timeout
+        Object response = rabbitTemplate.receiveAndConvert("bookQueue", 10000); // 10 Sekunden Timeout
         if (response != null) {
             System.out.println("JSON response: " + response); // Zum Debuggen
             return (Book) response;
