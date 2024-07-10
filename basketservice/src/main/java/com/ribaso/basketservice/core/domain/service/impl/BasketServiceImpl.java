@@ -37,22 +37,13 @@ public class BasketServiceImpl implements BasketService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private Book getBookDetails(String bookId) throws IOException {
-        Message message = MessageBuilder.withBody(bookId.getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-        Message responseMessage = rabbitTemplate.sendAndReceive("bookExchange", "bookRoutingKey", message);
-        if (responseMessage != null) {
-            String jsonResponse = new String(responseMessage.getBody(), StandardCharsets.UTF_8);
-            System.out.println("JSON response: " + jsonResponse); // Zum Debuggen
-            try {
-                return objectMapper.readValue(responseMessage.getBody(), Book.class);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to parse book details from response: " + jsonResponse, e);
-            }
+        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey-key", bookId);
+        Object response = rabbitTemplate.receiveAndConvert("bookRoutingKey", 10000); // 10 Sekunden Timeout
+        if (response != null) {
+            System.out.println("JSON response: " + response); // Zum Debuggen
+            return (Book) response;
         }
         return null;
     }
