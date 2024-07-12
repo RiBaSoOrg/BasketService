@@ -21,8 +21,9 @@ public class SendBookId {
     }
 
     public void sendBookId(String bookId) {
+        final var message = new IdMessage(bookId);
         log.info("Sending message...");
-        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", bookId);
+        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", message);
         }
     }
     
