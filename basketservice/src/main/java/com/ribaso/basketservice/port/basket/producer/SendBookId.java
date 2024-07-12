@@ -14,7 +14,7 @@ public class SendBookId {
     private static final Logger log = LoggerFactory.getLogger(Book.class);
     
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     public SendBookId(final RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;

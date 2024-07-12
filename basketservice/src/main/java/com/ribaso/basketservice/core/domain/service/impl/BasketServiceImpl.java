@@ -35,7 +35,7 @@ public class BasketServiceImpl implements BasketService {
     private RabbitTemplate rabbitTemplate;
     
     @Autowired
-    private SendBookId sendBookId = new SendBookId(rabbitTemplate);
+    private SendBookId sendBookId;
 
     @RabbitListener(queues =  "bookQueue")
     private Book getBookDetails(String bookId) throws IOException {
