@@ -1,7 +1,5 @@
 package com.ribaso.basketservice.core.domain.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ribaso.basketservice.core.domain.model.Basket;
 import com.ribaso.basketservice.core.domain.model.Book;
 import com.ribaso.basketservice.core.domain.model.Item;
@@ -12,10 +10,9 @@ import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
+
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageBuilder;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +20,6 @@ import jakarta.transaction.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
@@ -37,9 +33,11 @@ public class BasketServiceImpl implements BasketService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    
+    @Autowired
+    private SendBookId sendBookId = new SendBookId(rabbitTemplate);
 
-    SendBookId sendBookId = new SendBookId(rabbitTemplate);
-
+    @RabbitListener(queues =  "bookQueue")
     private Book getBookDetails(String bookId) throws IOException {
         sendBookId.sendBookId(bookId);
         Object response = rabbitTemplate.receiveAndConvert("bookQueue", 10000); // 10 Sekunden Timeout
