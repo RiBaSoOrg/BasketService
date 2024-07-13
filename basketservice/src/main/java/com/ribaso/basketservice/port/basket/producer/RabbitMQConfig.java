@@ -1,4 +1,4 @@
-package com.ribaso.basketservice.port.config;
+package com.ribaso.basketservice.port.basket.producer;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -34,6 +34,7 @@ public class RabbitMQConfig {
         return new Jackson2JsonMessageConverter();
     }
 
+    
     @Bean
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
