@@ -1,4 +1,4 @@
-package com.ribaso.basketservice.port.basket.producer;
+package com.ribaso.basketservice.port.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
