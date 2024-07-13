@@ -12,6 +12,8 @@ import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class BasketServiceImpl implements BasketService {
 
+    
+    private static final Logger log = LoggerFactory.getLogger(Book.class);
+
     @Autowired
     private BasketRepository basketRepository;
 
@@ -40,6 +45,7 @@ public class BasketServiceImpl implements BasketService {
     
     @Autowired
     private ResponseListener responseListener;
+
 
     private Book waitForBookDetails(String correlationId) {
         // Simple blocking loop with a timeout
@@ -90,7 +96,12 @@ public class BasketServiceImpl implements BasketService {
             newItem.setId(itemID);
             newItem.setAmount(amount);
             newItem.setName(book.getTitle());
+            try {
             newItem.setPrice(new BigDecimal(book.getPrice()));
+            }
+            catch (NumberFormatException e) {
+                log.error("Invalid number format for price: " + book.getPrice(), e);
+            }
             newItem.setBasket(basket);
 
             itemRepository.save(newItem);
