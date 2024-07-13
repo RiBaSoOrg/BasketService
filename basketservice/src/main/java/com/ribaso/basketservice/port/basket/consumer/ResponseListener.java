@@ -3,10 +3,13 @@ package com.ribaso.basketservice.port.basket.consumer;
 import com.ribaso.basketservice.core.domain.model.Book;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.amqp.core.Message;
 
-
+@Component
 public class ResponseListener {
 
     private ConcurrentHashMap<String, Book> responseMap = new ConcurrentHashMap<>();

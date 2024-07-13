@@ -18,7 +18,6 @@ public class RabbitMQConfig {
         return new DirectExchange("bookExchange");
     }
 
-
     @Bean
     public Queue bookQueue() {
         return new Queue("bookQueue");
@@ -30,11 +29,20 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue bookResponseQueue() {
+        return new Queue("bookResponseQueue", true); // true means durable
+    }
+
+    @Bean
+    public Binding bindingResponse(Queue bookResponseQueue, DirectExchange bookExchange) {
+        return BindingBuilder.bind(bookResponseQueue).to(bookExchange).with("bookResponseRoutingKey");
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    
     @Bean
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
