@@ -38,16 +38,4 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(bookQueue).to(bookExchange).with("bookRoutingKey");
     }
 
-    @Bean
-    public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
-        final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
-        return rabbitTemplate;
-    }
-
 }
