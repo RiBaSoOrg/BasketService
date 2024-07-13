@@ -31,7 +31,7 @@ public class ResponseListener {
 
     public void registerCorrelationId(String correlationId) {
         if (correlationId != null) {
-            responseMap.put(correlationId, null);
+            responseMap.put(correlationId, new Book());
         } else {
             // Log an error or throw an exception
             log.error("Attempted to register a null correlation ID");
