@@ -23,9 +23,6 @@ public class SendBookId {
 
     public void sendBookId(String bookId) {
         log.info("Sending message...");
-        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", bookId, message -> {
-            message.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
-            return message;
-        });
+        rabbitTemplate.convertAndSend("bookExchange", "bookRoutingKey", bookId);
     }
 }
