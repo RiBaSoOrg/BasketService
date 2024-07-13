@@ -37,7 +37,8 @@ public class BasketServiceImpl implements BasketService {
     
     @Autowired
     private SendBookId sendBookId;
-
+    
+    @Autowired
     private ResponseListener responseListener;
 
     private Book waitForBookDetails(String correlationId) {
