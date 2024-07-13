@@ -1,27 +1,19 @@
 package com.ribaso.basketservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ribaso.basketservice.core.domain.model.Basket;
 import com.ribaso.basketservice.core.domain.model.Item;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketRepository;
 import com.ribaso.basketservice.core.domain.service.interfaces.ItemRepository;
-import com.ribaso.basketservice.core.domain.service.impl.BasketServiceImpl;
-import com.ribaso.basketservice.port.user.controller.BasketController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -34,14 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {BasketServiceApplication.class, RabbitMQTestConfig.class})
+@ContextConfiguration(classes = { BasketServiceApplication.class })
 public class BasketControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockBean
     private BasketRepository basketRepository;
