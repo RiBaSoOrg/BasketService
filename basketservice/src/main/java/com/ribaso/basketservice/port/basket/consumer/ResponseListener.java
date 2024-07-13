@@ -5,12 +5,18 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.amqp.core.Message;
 
+
 @Component
 public class ResponseListener {
+    private static final Logger log = LoggerFactory.getLogger(Book.class);
+
 
     private ConcurrentHashMap<String, Book> responseMap = new ConcurrentHashMap<>();
 
@@ -24,7 +30,12 @@ public class ResponseListener {
     }
 
     public void registerCorrelationId(String correlationId) {
-        responseMap.put(correlationId, null);
+        if (correlationId != null) {
+            responseMap.put(correlationId, null);
+        } else {
+            // Log an error or throw an exception
+            log.error("Attempted to register a null correlation ID");
+        }
     }
 
     public Book getResponseForCorrelationId(String correlationId) {

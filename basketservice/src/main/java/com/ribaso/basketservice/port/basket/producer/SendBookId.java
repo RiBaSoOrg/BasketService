@@ -26,6 +26,7 @@ public class SendBookId {
         log.info("Sending book ID: {}", bookId);
         MessageProperties props = new MessageProperties();
         props.setCorrelationId(correlationId);
+        log.info("Sending book ID with correlationId: {}", correlationId);
         log.info("Sending message...");
         Message message = new Message(bookId.getBytes(), props);
         rabbitTemplate.send("bookExchange", "bookRoutingKey", message);
