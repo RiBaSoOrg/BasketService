@@ -18,21 +18,12 @@ public class RabbitMQConfig {
         return new DirectExchange("bookExchange");
     }
 
-    @Bean
-    public Queue bookIdQueue() {
-        return new Queue("bookIdQueue");
-    }
 
     @Bean
     public Queue bookQueue() {
         return new Queue("bookQueue");
     }
 
-    @Bean
-    public Binding bindingId(Queue bookIdQueue, DirectExchange bookExchange) {
-        return BindingBuilder.bind(bookIdQueue).to(bookExchange).with("bookRoutingKey");
-    }
-    
     @Bean
     public Binding binding(Queue bookQueue, DirectExchange bookExchange) {
         return BindingBuilder.bind(bookQueue).to(bookExchange).with("bookRoutingKey");
