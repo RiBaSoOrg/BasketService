@@ -7,6 +7,7 @@ import com.ribaso.basketservice.core.domain.service.impl.BasketServiceImpl;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketRepository;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
 import com.ribaso.basketservice.core.domain.service.interfaces.ItemRepository;
+import com.ribaso.basketservice.port.basket.producer.GetBookDetails;
 import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
@@ -29,6 +31,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -43,13 +46,13 @@ class BasketServiceTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
+    @Mock
+    private GetBookDetails getBookDetails; 
+
     @InjectMocks
     private BasketServiceImpl basketServiceImpl;
 
     private BasketService basketService;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     private Basket basket;
     private Item item;
@@ -76,8 +79,7 @@ class BasketServiceTest {
         book.setPrice(("10.00"));
 
         basket.setItems(Arrays.asList(item));
-        
-        objectMapper = new ObjectMapper();
+
     }
 
     @Test
@@ -146,28 +148,35 @@ class BasketServiceTest {
         assertThrows(UnknownItemIDException.class, () -> basketService.getItem("1", "2"));
     }
 
-    /* @Test
+    @Test
     void addItem_ShouldAddNewItem_WhenItemDoesNotExist() throws Exception {
+        book = new Book();
+        book.setId("2");
+        book.setTitle("Test Book");
+        book.setPrice(("10.00"));
+
+        basket.setItems(Arrays.asList(item));
+
         when(basketRepository.findById("1")).thenReturn(Optional.of(basket));
         when(itemRepository.save(any(Item.class))).thenReturn(item);
-    
-        // Erstelle eine JSON-Nachricht
-        Message message = MessageBuilder.withBody("2".getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-    
-        String bookJson = objectMapper.writeValueAsString(book);
-        Message responseMessage = MessageBuilder.withBody(bookJson.getBytes(StandardCharsets.UTF_8))
-                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-                .build();
-    
-        when(rabbitTemplate.sendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), eq(message)))
+        when(getBookDetails.getBookDetails(anyString())).thenReturn(book);
+
+        // Jackson2JsonMessageConverter im Test verwenden
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+        rabbitTemplate.setMessageConverter(converter);
+
+        // Buch als JSON simulieren
+        Message responseMessage = converter.toMessage(book, new MessageProperties());
+
+        // Konfigurieren Sie das Mock des RabbitTemplate, um die simulierte Antwort
+        // zurückzugeben
+        when(rabbitTemplate.sendAndReceive(eq("bookExchange"), eq("bookRoutingKey"), any(Message.class)))
                 .thenReturn(responseMessage);
-    
+
         boolean result = basketService.addItem("1", "2", 3);
         assertTrue(result);
         verify(itemRepository, times(1)).save(any(Item.class));
-    } */
+    }
 
     @Test
     void addItem_ShouldIncreaseItemAmount_WhenItemExists() throws IOException {
