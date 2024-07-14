@@ -5,8 +5,7 @@ import com.ribaso.basketservice.core.domain.model.Book;
 import com.ribaso.basketservice.core.domain.model.Item;
 import com.ribaso.basketservice.core.domain.service.interfaces.BasketRepository;
 import com.ribaso.basketservice.core.domain.service.interfaces.ItemRepository;
-import com.ribaso.basketservice.port.basket.consumer.ResponseListener;
-import com.ribaso.basketservice.port.basket.producer.SendBookId;
+import com.ribaso.basketservice.port.basket.producer.GetBookDetails;
 import com.ribaso.basketservice.port.exception.InvalidAmountException;
 import com.ribaso.basketservice.port.exception.UnknownBasketIDException;
 import com.ribaso.basketservice.port.exception.UnknownItemIDException;
@@ -14,8 +13,6 @@ import com.ribaso.basketservice.core.domain.service.interfaces.BasketService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +21,6 @@ import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class BasketServiceImpl implements BasketService {
@@ -41,30 +35,9 @@ public class BasketServiceImpl implements BasketService {
     private ItemRepository itemRepository;
     
     @Autowired
-    private SendBookId sendBookId;
+    private GetBookDetails getBookDetails;
     
-    @Autowired
-    private ResponseListener responseListener;
-
-
-    private Book waitForBookDetails(String correlationId) {
-        // Simple blocking loop with a timeout
-        final long startTime = System.currentTimeMillis();
-        long timeout = 10000; // 10 seconds timeout
-        while (System.currentTimeMillis() - startTime < timeout) {
-            Book response = responseListener.getResponseForCorrelationId(correlationId);
-            if (response != null) {
-                return response;
-            }
-            try {
-                Thread.sleep(100);  // Sleep a little to avoid hogging CPU
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                return null;
-            }
-        }
-        return null; // Return null if timeout reached
-    }
+    
 
     @Override
     @Transactional
@@ -83,11 +56,8 @@ public class BasketServiceImpl implements BasketService {
             item.setAmount(item.getAmount() + amount);
             itemRepository.save(item);
         } else {
-            String correlationId = UUID.randomUUID().toString();  // Generate a unique ID
-            sendBookId.sendBookId(itemID, correlationId);  // Assume sendBookId is properly set up to send messages
-            responseListener.registerCorrelationId(correlationId);  // Register correlation ID to wait for the response
-    
-            Book book = waitForBookDetails(correlationId);  // Method to wait for the response to be populated
+           
+            Book book = (Book) getBookDetails.getBookDetails(itemID);  // Method to wait for the response to be populated
             if (book == null) {
                 throw new UnknownItemIDException("Book not found");
             }
