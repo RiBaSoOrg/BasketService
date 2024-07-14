@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ribaso.basketservice.core.domain.model.Book;
+import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 
 @Service
 public class GetBookDetails {
@@ -22,10 +23,13 @@ public class GetBookDetails {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public Object getBookDetails(String bookId) {
-        log.info("Sending book ID: {}", bookId);
-
-        return rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
-       
+    public Book getBookDetails(String bookId) {
+    log.info("Sending book ID: {}", bookId);
+    Book response = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+    if (response == null) {
+        throw new UnknownItemIDException("Book not found for ID: " + bookId);
     }
+    return response;
+}
+
 }
