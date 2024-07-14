@@ -25,7 +25,8 @@ public class GetBookDetails {
 
     public Book getBookDetails(String bookId) {
     log.info("Sending book ID: {}", bookId);
-    Book response = (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+    Book response =  (Book) rabbitTemplate.convertSendAndReceive("bookExchange", "bookRoutingKey", bookId);
+    log.info(bookId, response);
     if (response == null) {
         throw new UnknownItemIDException("Book not found for ID: " + bookId);
     }
