@@ -11,6 +11,7 @@ import java.util.List;
 @Entity
 public class Basket {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private String id;
     private String userId;
 
