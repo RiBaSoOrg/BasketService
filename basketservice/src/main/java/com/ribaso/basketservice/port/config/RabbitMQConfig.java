@@ -29,6 +29,17 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue bookResponseQueue() {
+        return new Queue("bookResponseQueue");
+    }
+
+    @Bean
+    public Binding bindingResponse(Queue bookResponseQueue, DirectExchange bookExchange) {
+        return BindingBuilder.bind(bookResponseQueue).to(bookExchange).with("bookResponseRoutingKey");
+    }
+
+
+    @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
@@ -37,6 +48,11 @@ public class RabbitMQConfig {
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+
+          // Setzen der Reply-To-Adresse
+    rabbitTemplate.setReplyAddress("bookResponseQueue");
+    rabbitTemplate.setReplyTimeout(6000); // Timeout in Millisekunden
+
         return rabbitTemplate;
     }
 
