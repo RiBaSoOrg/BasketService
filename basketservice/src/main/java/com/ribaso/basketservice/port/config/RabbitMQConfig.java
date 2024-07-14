@@ -42,14 +42,4 @@ public class RabbitMQConfig {
         return rabbitTemplate;
     }
 
-    @Bean
-    public SimpleMessageListenerContainer replyListenerContainer(ConnectionFactory connectionFactory,
-            RabbitTemplate rabbitTemplate) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.setQueues(bookResponseQueue());
-        container.setMessageListener(new MessageListenerAdapter(rabbitTemplate, "receiveMessage"));
-        return container;
-    }
-
 }
