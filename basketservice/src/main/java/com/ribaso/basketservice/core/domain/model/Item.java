@@ -5,6 +5,8 @@ import lombok.Data;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Data
 @Entity
 public class Item {
@@ -16,5 +18,6 @@ public class Item {
 
     @ManyToOne
     @JoinColumn(name = "basket_id")
+    @JsonBackReference
     private Basket basket;
 }
