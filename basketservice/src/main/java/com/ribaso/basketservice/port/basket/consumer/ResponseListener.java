@@ -23,9 +23,11 @@ public class ResponseListener {
     @RabbitListener(queues = "bookResponseQueue")
     public void receiveBookDetails(Book book, Message message) {
         String correlationId = message.getMessageProperties().getCorrelationId();
+        log.info("Warte auf bookmessage");
         if (correlationId != null && responseMap.containsKey(correlationId)) {
             responseMap.put(correlationId, book);
-            // Hier können Sie weitere Verarbeitungen vornehmen, z.B. eine Callback-Funktion aufrufen
+            log.info("bookmessage erhalten: "+ book.getTitle());
+            
         }
     }
 
