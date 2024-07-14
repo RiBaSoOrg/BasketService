@@ -71,7 +71,7 @@ public class BasketServiceImpl implements BasketService {
             newItem.setName(book.getTitle());
             log.info("Price_string"+ (book.getPrice()));
             try {
-            newItem.setPrice(new BigDecimal(book.getPrice()));
+                newItem.setPrice(cleanAndConvertToBigDecimal(book.getPrice()));
             }
             catch (NumberFormatException e) {
                 log.error("Invalid number format for price: " + book.getPrice(), e);
@@ -152,4 +152,22 @@ public class BasketServiceImpl implements BasketService {
         basket.setUserId(userId);
         return basketRepository.save(basket);
     }
+
+    public BigDecimal cleanAndConvertToBigDecimal(String price) {
+        if (price == null) {
+            return BigDecimal.ZERO; // oder werfe eine Exception, wenn das angemessener ist
+        }
+        
+        // Ersetzt alles, was keine Ziffer, kein Punkt oder kein Minuszeichen ist
+        String cleanedPrice = price.replaceAll("[^\\d.-]", "");
+        
+        try {
+            return new BigDecimal(cleanedPrice);
+        } catch (NumberFormatException e) {
+            // Logge den Fehler oder handle ihn entsprechend
+            System.err.println("Fehler beim Umwandeln des Preises: " + e.getMessage());
+            return BigDecimal.ZERO; // oder werfe eine Exception
+        }
+    }
+
 }
