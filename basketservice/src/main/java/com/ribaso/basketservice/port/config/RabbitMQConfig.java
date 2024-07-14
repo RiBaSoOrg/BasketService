@@ -6,6 +6,8 @@ import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +40,6 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(bookResponseQueue).to(bookExchange).with("bookResponseRoutingKey");
     }
 
-
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -49,11 +50,21 @@ public class RabbitMQConfig {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
 
-          // Setzen der Reply-To-Adresse
-    rabbitTemplate.setReplyAddress("bookResponseQueue");
-    rabbitTemplate.setReplyTimeout(6000); // Timeout in Millisekunden
+        // Setzen der Reply-To-Adresse
+        rabbitTemplate.setReplyAddress("bookResponseQueue");
+        rabbitTemplate.setReplyTimeout(6000); // Timeout in Millisekunden
 
         return rabbitTemplate;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer replyListenerContainer(ConnectionFactory connectionFactory,
+            RabbitTemplate rabbitTemplate) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setQueues(bookResponseQueue());
+        container.setMessageListener(new MessageListenerAdapter(rabbitTemplate, "receiveMessage"));
+        return container;
     }
 
 }
