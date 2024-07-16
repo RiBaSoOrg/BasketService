@@ -126,21 +126,24 @@ public class BasketServiceImpl implements BasketService {
         if (amount <= 0) {
             throw new InvalidAmountException("Amount must be greater than zero");
         }
-
+    
         Basket basket = getBasket(basketID);
         Item item = getItem(basketID, itemID);
-
+    
         if (item.getAmount() < amount) {
             throw new InvalidAmountException("Not enough items to remove");
         }
-
+    
         item.setAmount(item.getAmount() - amount);
-
+    
         if (item.getAmount() == 0) {
+            basket.getItems().remove(item);
             itemRepository.delete(item);
         } else {
             itemRepository.save(item);
         }
+    
+        basketRepository.save(basket); // Save the basket after modifying items
         return true;
     }
 

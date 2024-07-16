@@ -26,7 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -206,14 +208,29 @@ class BasketServiceTest {
     }
 
     @Test
-    void removeItem_ShouldDeleteItem_WhenAmountIsZero() {
-        when(basketRepository.findById("1")).thenReturn(Optional.of(basket));
-        doNothing().when(itemRepository).delete(item);
+void removeItem_ShouldDeleteItem_WhenAmountIsZero() {
+    // Mock basket and items
+    Basket basket = new Basket();
+    basket.setId("1");
 
-        boolean result = basketService.removeItem("1", "1", 2);
-        assertTrue(result);
-        verify(itemRepository, times(1)).delete(item);
-    }
+    Item item = new Item();
+    item.setId("1");
+    item.setAmount(2);
+    basket.setItems(new ArrayList<>(List.of(item))); // Use ArrayList to ensure it's modifiable
+
+    // Mock repository behavior
+    when(basketRepository.findById("1")).thenReturn(Optional.of(basket));
+    doNothing().when(itemRepository).delete(item);
+    when(basketRepository.save(any(Basket.class))).thenReturn(basket);
+
+    // Call the service method
+    boolean result = basketService.removeItem("1", "1", 2);
+
+    // Verify the result and interactions
+    assertTrue(result);
+    verify(itemRepository, times(1)).delete(item);
+    verify(basketRepository, times(1)).save(basket);
+}
 
     @Test
     void removeItem_ShouldThrowException_WhenAmountIsInvalid() {
