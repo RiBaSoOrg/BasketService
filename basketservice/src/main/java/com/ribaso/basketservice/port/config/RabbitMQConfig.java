@@ -20,8 +20,8 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     @Bean
-    public DirectExchange bookExchange() {
-        return new DirectExchange("bookExchange");
+    public DirectExchange exchange() {
+        return new DirectExchange("exchange");
     }
 
     @Bean
