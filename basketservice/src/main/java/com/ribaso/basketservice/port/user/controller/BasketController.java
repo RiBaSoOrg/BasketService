@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/baskets")
+@CrossOrigin(origins = "http://localhost:3000")
 public class BasketController {
 
     @Autowired
