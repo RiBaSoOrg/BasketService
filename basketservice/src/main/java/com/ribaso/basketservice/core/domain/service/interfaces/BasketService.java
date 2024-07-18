@@ -8,7 +8,6 @@ import com.ribaso.basketservice.port.exception.UnknownItemIDException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 
 public interface BasketService {
 
